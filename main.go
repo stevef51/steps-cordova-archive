@@ -37,6 +37,7 @@ type ConfigsModel struct {
 	Target         string
 	BuildConfig    string
 	ReAddPlatform  string
+	AddPlatform 	 string
 	CordovaVersion string
 	WorkDir        string
 	Options        string
@@ -50,6 +51,7 @@ func createConfigsModelFromEnvs() ConfigsModel {
 		Target:         os.Getenv("target"),
 		BuildConfig:    os.Getenv("build_config"),
 		ReAddPlatform:  os.Getenv("readd_platform"),
+		AddPlatform: 		os.Getenv("add_platform"),
 		CordovaVersion: os.Getenv("cordova_version"),
 		WorkDir:        os.Getenv("workdir"),
 		Options:        os.Getenv("options"),
@@ -64,6 +66,7 @@ func (configs ConfigsModel) print() {
 	log.Printf("- Target: %s", configs.Target)
 	log.Printf("- BuildConfig: %s", configs.BuildConfig)
 	log.Printf("- ReAddPlatform: %s", configs.ReAddPlatform)
+	log.Printf("- AddPlatform: %s", configs.AddPlatform)
 	log.Printf("- CordovaVersion: %s", configs.CordovaVersion)
 	log.Printf("- WorkDir: %s", configs.WorkDir)
 	log.Printf("- Options: %s", configs.Options)
@@ -81,6 +84,10 @@ func (configs ConfigsModel) validate() error {
 
 	if err := input.ValidateWithOptions(configs.ReAddPlatform, "true", "false"); err != nil {
 		return fmt.Errorf("ReAddPlatform: %s", err)
+	}
+
+	if err := input.ValidateWithOptions(configs.AddPlatform, "true", "false"); err != nil {
+		return fmt.Errorf("AddPlatform: %s", err)
 	}
 
 	if err := input.ValidateIfNotEmpty(configs.Configuration); err != nil {
@@ -310,15 +317,17 @@ func main() {
 		}
 	}
 
-	platformAddCmd := builder.PlatformCommand("add")
-	platformAddCmd.SetStdout(os.Stdout)
-	platformAddCmd.SetStderr(os.Stderr)
+	if configs.AddPlatform == "true" {
+		platformAddCmd := builder.PlatformCommand("add")
+		platformAddCmd.SetStdout(os.Stdout)
+		platformAddCmd.SetStderr(os.Stderr)
 
-	log.Donef("$ %s", platformAddCmd.PrintableCommandArgs())
+		log.Donef("$ %s", platformAddCmd.PrintableCommandArgs())
 
-	if err := platformAddCmd.Run(); err != nil {
-		fail("cordova failed, error: %s", err)
-	}
+		if err := platformAddCmd.Run(); err != nil {
+			fail("cordova failed, error: %s", err)
+		}
+  }
 
 	// cordova build
 	fmt.Println()
